@@ -1,0 +1,5 @@
+Проект "XSS Scanner" загружен на GitHub: https://github.com/dashylik06/xss-scanner
+Запуск: 
+1. Скачать код
+2. Открыть start.bat
+3. Перейти на http://localhost:5000
