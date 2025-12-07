@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчет об анализе уязвимостей - XSS Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Отчет об анализе уязвимостей</h1>
+            <p>Этот отчет содержит результаты сканирования на наличие XSS (Cross-Site Scripting) уязвимостей.</p>
+        </header>
+
+        <nav>
+            <a href="/" class="nav-link">Главная</a>
+            <a href="/scan" class="nav-link">Новое сканирование</a>
+            <a href="/history" class="nav-link">История</a>
+            <a href="/statistics" class="nav-link">Статистика</a>
+        </nav>
+
+        <main>
+            {% if error %}
+            <div class="alert error">
+                {{ error }}
+            </div>
+            {% elif results %}
+
+            <div class="report-header">
+                <div class="scan-info">
+                    <p><strong>URL:</strong> {{ results.url }}</p>
+                    <p><strong>Тип сканирования:</strong> {{ results.scan_type }}</p>
+                    <p><strong>Время сканирования:</strong> {{ results.timestamp }}</p>
+                </div>
+            </div>
+
+            {% set summary = results.scan_summary %}
+            <div class="summary-section">
+                <div class="security-level {{ summary.security_level|lower|replace(' ', '-') }}">
+                    <h3>Уровень безопасности: {{ summary.security_level }}</h3>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-number {{ 'high-risk' if summary.high_risk > 0 else '' }}">{{ summary.high_risk }}</span>
+                            <span class="stat-label">Высокий риск</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number {{ 'medium-risk' if summary.medium_risk > 0 else '' }}">{{ summary.medium_risk }}</span>
+                            <span class="stat-label">Средний риск</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number {{ 'low-risk' if summary.low_risk > 0 else '' }}">{{ summary.low_risk }}</span>
+                            <span class="stat-label">Низкий риск</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">{{ summary.total_vulnerabilities }}</span>
+                            <span class="stat-label">Всего уязвимостей</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vulnerability-section">
+                <h2>Cross-Site Scripting (XSS) Vulnerabilities</h2>
+
+                {% if results.vulnerabilities %}
+                <p><strong>Были обнаружены следующие Cross-Site Scripting (XSS) уязвимости:</strong></p>
+
+                {% for vuln in results.vulnerabilities %}
+                <div class="vulnerability-item {{ vuln.severity }}-severity">
+                    <div class="vuln-details">
+                        <p><strong>URL:</strong> {{ results.url }}</p>
+                        <p><strong>Form Action:</strong> {{ results.url }}</p>
+                        <p><strong>Parameter:</strong>
+                            {% if vuln.location %}
+                                {{ vuln.location.split(':')[-1].strip() if ':' in vuln.location else vuln.location }}
+                            {% else %}
+                                query
+                            {% endif %}
+                        </p>
+                        <p><strong>Payload:</strong>
+                            {% if vuln.evidence and vuln.evidence[0] %}
+                                <code>{{ vuln.evidence[0] }}</code>
+                            {% else %}
+                                <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code>
+                            {% endif %}
+                        </p>
+                        <p><strong>Context:</strong> GET Parameter</p>
+                    </div>
+                    <div class="vuln-description">
+                        <p>XSS позволяет злоумышленникам внедрять вредоносные скрипты.</p>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% else %}
+                <div class="no-vulnerabilities">
+                    <p>Cross-Site Scripting (XSS) уязвимости не обнаружены.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="recommendations">
+                <h3>Рекомендации по безопасности</h3>
+                <div class="recommendation-list">
+                    {% if recommendations %}
+                        {% for rec in recommendations %}
+                        <div class="recommendation-item">
+                            <h4>{{ rec.title }}</h4>
+                            <p>{{ rec.description }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="recommendation-item">
+                            <h4>Экранирование данных</h4>
+                            <p>Всегда экранируйте пользовательский ввод.</p>
+                        </div>
+                        <div class="recommendation-item">
+                            <h4>Content Security Policy</h4>
+                            <p>Используйте заголовок Content Security Policy.</p>
+                        </div>
+                        <div class="recommendation-item">
+                            <h4>Валидация входных данных</h4>
+                            <p>Валидируйте все входные данные на стороне сервера.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="actions">
+                <a href="/scan" class="cta-button">Новое сканирование</a>
+                <button onclick="window.print()" class="secondary-button">Распечатать отчет</button>
+            </div>
+
+            {% else %}
+            <div class="alert info">
+                <p>Данные отчета не найдены. Возможно, сканирование еще не завершено.</p>
+                <a href="/scan" class="cta-button">Вернуться к сканированию</a>
+            </div>
+            {% endif %}
+        </main>
+
+        <footer>
+            <p>&copy; XSS Scanner. Отчет сгенерирован автоматически.</p>
+        </footer>
+    </div>
+</body>
+</html>
+</html>
