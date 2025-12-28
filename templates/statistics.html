@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика - XSS Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Статистика</h1>
+            <p>Анализ результатов всех сканирований</p>
+        </header>
+
+        <nav>
+            <a href="/" class="nav-link">Главная</a>
+            <a href="/scan" class="nav-link">Сканирование</a>
+            <a href="/history" class="nav-link">История</a>
+            <a href="/statistics" class="nav-link active">Статистика</a>
+        </nav>
+
+        <main>
+            <div class="stats-overview">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Всего сканирований</h3>
+                        <div class="stat-number">{{ statistics.total_scans or 0 }}</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Завершено</h3>
+                        <div class="stat-number">{{ statistics.completed_scans or 0 }}</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>В процессе</h3>
+                        <div class="stat-number">{{ statistics.running_scans or 0 }}</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Ошибок</h3>
+                        <div class="stat-number">{{ statistics.error_scans or 0 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {% if statistics.vulnerabilities_by_severity %}
+            <div class="vulnerability-stats">
+                <h3>Распределение уязвимостей по уровням риска</h3>
+                <div class="severity-breakdown">
+                    <div class="severity-item high">
+                        <h4>Высокий риск</h4>
+                        <div class="severity-count">{{ statistics.vulnerabilities_by_severity.get('high', 0) }}</div>
+                    </div>
+
+                    <div class="severity-item medium">
+                        <h4>Средний риск</h4>
+                        <div class="severity-count">{{ statistics.vulnerabilities_by_severity.get('medium', 0) }}</div>
+                    </div>
+
+                    <div class="severity-item low">
+                        <h4>Низкий риск</h4>
+                        <div class="severity-count">{{ statistics.vulnerabilities_by_severity.get('low', 0) }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </main>
+
+        <footer>
+            <p>&copy; XSS Scanner. Статистика обновляется в реальном времени.</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История сканирований - XSS Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 История сканирований</h1>
+            <p>Просмотр всех выполненных проверок</p>
+        </header>
+
+        <nav>
+            <a href="/" class="nav-link">Главная</a>
+            <a href="/scan" class="nav-link">Сканирование</a>
+            <a href="/history" class="nav-link active">История</a>
+            <a href="/statistics" class="nav-link">Статистика</a>
+        </nav>
+
+        <main>
+            <div class="info-box">
+                <h3>Всего сканирований: {{ scans|length }}</h3>
+            </div>
+
+            <div class="scans-list">
+                {% for scan in scans %}
+                <div class="scan-item {{ 'completed' if scan.status == 'completed' else scan.status }}">
+                    <div class="scan-header">
+                        <h4>{{ scan.url[:50] }}{% if scan.url|length > 50 %}...{% endif %}</h4>
+                        <span class="scan-status {{ scan.status }}">{{ scan.status }}</span>
+                    </div>
+
+                    <div class="scan-details">
+                        <p><strong>Тип:</strong> {{ scan.scan_type }}</p>
+                        <p><strong>Время:</strong> {{ scan.timestamp }}</p>
+                        <p><strong>Уровень безопасности:</strong>
+                            <span class="security-badge {{ scan.security_level|lower|replace(' ', '-') }}">
+                                {{ scan.security_level }}
+                            </span>
+                        </p>
+                        <p><strong>Уязвимостей:</strong> {{ scan.total_vulnerabilities or 0 }}</p>
+
+                        <div class="scan-actions">
+                            {% if scan.status == 'completed' %}
+                            <a href="/report/{{ scan.scan_id }}" class="cta-button small">Просмотреть отчет</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; XSS Scanner. История сканирований.</p>
+        </footer>
+    </div>
+</body>
+</html>

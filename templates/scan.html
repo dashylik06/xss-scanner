@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сканирование XSS - XSS Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Сканирование XSS</h1>
+            <p>Проверка веб-сайта на уязвимости</p>
+        </header>
+
+        <nav>
+            <a href="/" class="nav-link">Главная</a>
+            <a href="/scan" class="nav-link active">Сканирование</a>
+            <a href="/history" class="nav-link">История</a>
+            <a href="/statistics" class="nav-link">Статистика</a>
+        </nav>
+
+        <main>
+            {% if error %}
+            <div class="alert error">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            {% if not scan_id %}
+            <div class="scan-form">
+                <h2>Введите URL для сканирования</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="url">URL сайта:</label>
+                        <input type="url" id="url" name="url"
+                               placeholder="https://example.com"
+                               required
+                               value="{{ request.form.url if request.form.url }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="scan_type">Тип сканирования:</label>
+                        <select id="scan_type" name="scan_type">
+                            <option value="fast">Быстрое сканирование</option>
+                            <option value="deep">Глубокое сканирование</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="scan-button">Начать сканирование</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="scan-progress">
+                <h2>Сканирование выполняется...</h2>
+                <p>URL: <strong>{{ url }}</strong></p>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill">0%</div>
+                    </div>
+                    <div class="progress-text" id="progressText">Инициализация...</div>
+                </div>
+
+                <div id="scanResults" style="display: none;">
+                    <a href="/report/{{ scan_id }}" class="cta-button">Просмотреть отчет</a>
+                </div>
+            </div>
+
+            <script>
+                const scanId = "{{ scan_id }}";
+
+                function checkProgress() {
+                    fetch(`/scan_status/${scanId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const progressFill = document.getElementById('progressFill');
+                            const progressText = document.getElementById('progressText');
+                            const scanResults = document.getElementById('scanResults');
+
+                            if (data.status === 'completed') {
+                                progressFill.style.width = '100%';
+                                progressFill.textContent = '100%';
+                                progressText.textContent = 'Сканирование завершено!';
+                                scanResults.style.display = 'block';
+                                return;
+                            }
+
+                            if (data.status === 'error') {
+                                progressFill.style.width = '100%';
+                                progressFill.style.backgroundColor = '#e74c3c';
+                                progressFill.textContent = 'Ошибка';
+                                progressText.textContent = data.message;
+                                return;
+                            }
+
+                            const progress = data.progress || 0;
+                            progressFill.style.width = `${progress}%`;
+                            progressFill.textContent = `${progress}%`;
+                            progressText.textContent = data.message || 'Сканирование...';
+
+                            setTimeout(checkProgress, 1000);
+                        })
+                        .catch(error => {
+                            console.error('Ошибка:', error);
+                            setTimeout(checkProgress, 2000);
+                        });
+                }
+
+                checkProgress();
+            </script>
+            {% endif %}
+
+            <div class="info-box">
+                <h3>Рекомендации по сканированию:</h3>
+                <ul>
+                    <li>Используйте полный URL (включая http:// или https://)</li>
+                    <li>Быстрое сканирование проверяет основные параметры</li>
+                    <li>Глубокое сканирование анализирует формы и скрипты (занимает больше времени)</li>
+                    <li>Сканируйте только те сайты, которые вам принадлежат или у вас есть разрешение</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
